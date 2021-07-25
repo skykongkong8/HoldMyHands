@@ -1,4 +1,5 @@
 # 내 손을 잡아 (Hold My Hands)
+![ex_screenshot](./img/rough_concept_1.png)
 ## 1. 설계의 목적
 이 설계의 총체적 목적은 노트북 수리와 같은 human-scale의 수리 환경에서 반복적인 작업 동작 요소를 줄이기 위한 드라이버를 제작함에 있다. 공구 요소를 장갑형으로 개선해 한 손 조작이 가능한 wearable 전동 드라이버를 제작하여 수리 작업의 효율성을 높인다.
 설계를 통한 예상 효율은 다음과 같다.
@@ -10,6 +11,7 @@
 * 코로나-19로 인해 공공위생과 의료산업에 비상상황이 지속되면서 이러한 경향이 이어질 것으로 시사됨
 ## 2. 설계 핵심 내용
 ### 하드웨어 부분
+![ex_screenshot](./img/rough_components_modeling.png)
 
 ### 회로 및 제어 부분
 * RaspberryPi Zero와  2A L298N 모터 드라이버를  사용하여 PWM (Pulse-Width Modulation)방식으로 DC모터의 토크, 각속도, 회전 방향등을 조절할 수 있는 [소스코드](https://github.com/skykongkong8/MotorControl)
