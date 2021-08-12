@@ -1,23 +1,26 @@
-# Python Script
+# Motor Driver and GPIO Pin configuration refers to following:
 # https://www.electronicshub.org/raspberry-pi-l298n-interface-tutorial-control-dc-motor-l298n-raspberry-pi/
-# https://github.com/jumejume1/pi-l298n-dc-motor/blob/master/l298n_dc.py
 
 import RPi.GPIO as GPIO          
 from time import sleep
 from constant_variables import *
 
-
-
 class MetaController():
     def __init__(self):
         self.motor_power = 0
+        self.motor_power_sensor = 0
+
         self.motor_speed = None
         self.motor_direction = None
-        
-        
 
         self.DutyCycle = None
         self.DCMotor = GPIO.PWM(EN, 1000)
+        self.msg = """
+            Welcome! Motor has started.
+        """
+        self.goodbye="""
+            Goodbye.
+        """
 
     def set_MotorSpeed(self):
         try:
@@ -79,54 +82,36 @@ class MetaController():
         print("backward")
         sleep(3)
 
+    def dcmotor_start(self, pin):
+        self.DCMotor.start(pin)
+
     def terminate(self):
         GPIO.cleanup()
         print("EVERYTHING TERMINATED")
 
+    def run(self):
+        if PSEUDO_MEMBRANE_SWITCH == 0:
+            self.Rotate_Stop()
+            print("Rotate Stop!")
 
-if __name__ == "__main__":
+        elif PSEUDO_MEMBRANE_SWITCH == 1:
+            tmp =0
+            self.motor_power_sensor += 1
+            if self.motor_power_sensor != tmp:
+                self.motor_power +=1
+                tmp =0
+                
+            self.set_MotorSpeed()
+            self.Rotate_CCW()
+            print("Rotate CCW")
 
-    """Initial Configuration of GPIO PIN"""
-    GPIO.setmode(GPIO.BCM)
-    GPIO.setup(IN_1, GPIO.OUT)
-    GPIO.setup(IN_2, GPIO.OUT)
-    GPIO.setup(EN, GPIO.OUT)
 
-    GPIO.output(IN_1, GPIO.LOW)
-    GPIO.output(IN_2, GPIO.LOW)
+        elif PSEUDO_MEMBRANE_SWITCH == 2:
+            self.motor_speed = MEDIUM_SPEED
 
-    """MetaController Instance"""
-    Motor = MetaController()
-    Motor.DCMotor.start(EN)
+            self.set_MotorSpeed()
+            self.Rotate_CW()
+            print("Rotate CW")
 
-    print("\n")
-    print("The default speed & direction of motor is LOW & Forward.....")
-    print("r-run s-stop f-forward b-backward l-low m-medium h-high e-exit")
-    print("\n")    
-
-    while True:
-        try:
-            if PSEUDO_MEMBRANE_SWITCH == 0:
-                Motor.Rotate_Stop()
-
-            elif PSEUDO_MEMBRANE_SWITCH == 1:
-                Motor.motor_power += 1
-                Motor.set_MotorSpeed()
-                Motor.Rotate_CCW()
-
-            elif PSEUDO_MEMBRANE_SWITCH == 2:
-                Motor.motor_speed = MEDIUM_SPEED
-
-                Motor.set_MotorSpeed()
-                Motor.Rotate_CW()
-
-            else:
-                Motor.Rotate_Stop()
-
-        except KeyboardInterrupt:
-            print("Error : Keyboard Interrupt Error!\n")
-        except:
-            print("Error : Unknown Error!\n")
-
-        finally:
-            Motor.terminate()
+        else:
+            self.Rotate_Stop()
