@@ -13,23 +13,25 @@ class MetaController():
         self.motor_power = 0
         self.motor_speed = None
         self.motor_direction = None
-        self.DutyCycle = None
         
+        
+
+        self.DutyCycle = None
         self.DCMotor = GPIO.PWM(EN, 1000)
 
     def set_MotorSpeed(self):
         try:
             if self.motor_speed == LOW_SPEED:
-                p.ChangeDutyCycle(25)
+                self.DCMotor.ChangeDutyCycle(25)
                 print("Duty cycle set to LOW")
             elif self.motor_speed == MEDIUM_SPEED:
-                p.ChangeDutyCycle(50)
+                self.DCMotor.ChangeDutyCycle(50)
                 print("Duty cycle set to MEDIUM")
             elif self.motor_speed == HIGH_SPEED:
-                p.ChangeDutyCycle(75)
+                self.DCMotor.ChangeDutyCycle(75)
                 print("Duty cycle set to HIGH")
             else:
-                p.ChangeDutyCycle(25)
+                self.DCMotor.ChangeDutyCycle(25)
                 print("Speed input undetected! Set to DEFAULT : LOW")
         except:
             print("Error : Motor speed setting Failed!")
@@ -83,8 +85,8 @@ class MetaController():
 
 
 if __name__ == "__main__":
-    Motor = MetaController()
 
+    """Initial Configuration of GPIO PIN"""
     GPIO.setmode(GPIO.BCM)
     GPIO.setup(IN_1, GPIO.OUT)
     GPIO.setup(IN_2, GPIO.OUT)
@@ -93,10 +95,10 @@ if __name__ == "__main__":
     GPIO.output(IN_1, GPIO.LOW)
     GPIO.output(IN_2, GPIO.LOW)
 
-    p=GPIO.PWM(EN, 1000)
+    """MetaController Instance"""
+    Motor = MetaController()
+    Motor.DCMotor.start(EN)
 
-    p.start(EN)
-    
     print("\n")
     print("The default speed & direction of motor is LOW & Forward.....")
     print("r-run s-stop f-forward b-backward l-low m-medium h-high e-exit")
@@ -125,6 +127,6 @@ if __name__ == "__main__":
             print("Error : Keyboard Interrupt Error!\n")
         except:
             print("Error : Unknown Error!\n")
-        
+
         finally:
             Motor.terminate()
