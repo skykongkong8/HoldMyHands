@@ -16,7 +16,7 @@ class MetaController():
         self.DutyCycle = None
         self.DCMotor = GPIO.PWM(EN, 1000)
         self.msg = """
-            Welcome! Motor has started.
+            Welcome! Motor is initialized.
         """
         self.goodbye="""
             Goodbye.
@@ -40,11 +40,11 @@ class MetaController():
             print("Error : Motor speed setting Failed!")
 
     def classify_motor_speed(self):
-        if self.motor_power == 1:
+        if self.motor_power == 0:
             self.motor_speed = LOW_SPEED
-        elif self.motor_power == 2:
+        elif self.motor_power == 1:
             self.motor_speed - MEDIUM_SPEED
-        elif self.motor_speed == 3:
+        elif self.motor_speed == 2:
             self.motor_speed = HIGH_SPEED
         else:
             self.motor_speed == LOW_SPEED
@@ -89,29 +89,80 @@ class MetaController():
         GPIO.cleanup()
         print("EVERYTHING TERMINATED")
 
+    def membrane_switch_checker(self):
+        stop = GPIO.input(PSEUDO_MEMBRANE_SWITCH['RED_STOP'])
+        cw = GPIO.input(PSEUDO_MEMBRANE_SWITCH['YELLOW_CW'])
+        ccw = GPIO.input(PSEUDO_MEMBRANE_SWITCH['GREEN_CCW'])
+        return [stop, cw, ccw]
+
+    def is_anything_on(self, list):
+        for pin in list:
+            if pin == ON:
+                return pin
+        return OFF
+
+    def count_button_press(self, button, cnt):
+        if button == ON:
+            cnt += 1
+            if cnt >= 3:
+                # count by 0, 1, 2 and go back to 0
+                cnt = 0
+        return cnt
+
+    def _switch_checker(self):
+        button_list = self.membrane_switch_checker()
+        pin = self.is_anything_on(button_list)
+        if pin:
+            return pin
+
+    def green_switch_checker(self, cnt):
+        green = GPIO.input(GREEN_CCW)
+        if green:
+            cnt += 1
+            if cnt >= 3:
+                cnt =0
+        return cnt
+
+    def red(self):
+        self._switch_checker()
+        self.Rotate_Stop()
+
+    def green(self):
+        self.set_MotorSpeed()
+        self.Rotate_CCW()
+
+    def yellow(self):
+        self.set_MotorSpeed()
+        self.Rotate_CW()
+
+
     def run(self):
-        if PSEUDO_MEMBRANE_SWITCH == 0:
-            self.Rotate_Stop()
+        membrane_switch_status = self.membrane_switch_checker()
+
+        if membrane_switch_status[RED] == ON:
             print("Rotate Stop!")
+            while True:
+                if self._switch_checker() in [GREEN, YELLOW]:
+                    break
+                self.red()
 
-        elif PSEUDO_MEMBRANE_SWITCH == 1:
-            tmp =0
-            self.motor_power_sensor += 1
-            if self.motor_power_sensor != tmp:
-                self.motor_power +=1
-                tmp =0
-                
-            self.set_MotorSpeed()
-            self.Rotate_CCW()
+        elif membrane_switch_status[GREEN] == ON:
             print("Rotate CCW")
+            self.motor_speed = LOW_SPEED
+            while True:
+                if self._switch_checker() in [RED, YELLOW]:
+                    break
+                self.motor_power = self.green_switch_checker(self.motor_power) 
+                self.green
 
 
-        elif PSEUDO_MEMBRANE_SWITCH == 2:
-            self.motor_speed = MEDIUM_SPEED
-
-            self.set_MotorSpeed()
-            self.Rotate_CW()
+        elif membrane_switch_status[YELLOW] == ON:
             print("Rotate CW")
+            self.motor_speed = MEDIUM_SPEED
+            while True:
+                if self._switch_checker() in [GREEN, RED]:
+                    break
+                self.yellow()
 
         else:
             self.Rotate_Stop()
